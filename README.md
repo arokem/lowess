@@ -1,4 +1,4 @@
 lowess
 ======
 
-A pure-python implementation of the lowess algorithm
+A Python implementation of the lowess algorithm
