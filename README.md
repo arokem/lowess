@@ -13,7 +13,7 @@ Learning.
 Cleveland (1979). Robust Locally Weighted Regression and Smoothing
 Scatterplots. J American Statistical Association, 74: 829-836.)
 
-#Example
+#Examples
 
     >>> import lowess as lo
     >>> import numpy as np
