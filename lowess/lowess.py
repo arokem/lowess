@@ -4,6 +4,8 @@ lowess: Locally linear regression
 
 Implementation of the LOWESS algorithm in n dimensions.
 
+References
+=========
 [FHT] Friedman, Hastie and Tibshirani (2008). The Elements of Statistical
 Learning; Chapter 6 
 
@@ -35,10 +37,11 @@ def epanechnikov(xx, idx=None):
     -----
     This is equation 6.4 in FHT chapter 6        
     
-    """        
+    """
     ans = np.zeros(xx.shape)
     ans[idx] = 0.75 * (1-xx[idx]**2)
     return ans
+
 
 def tri_cube(xx, idx=None):
     """ 
@@ -62,6 +65,7 @@ def tri_cube(xx, idx=None):
     ans = np.zeros(xx.shape)
     ans[idx] = (1-np.abs(xx[idx])**3)**3
     return ans
+
 
 def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     """
@@ -96,7 +100,6 @@ def bi_square(xx, idx=None):
     -----
     This is the first equation on page 831 of [Cleveland79].
     """
-
     ans = np.zeros(xx.shape)
     ans[idx] = (1-xx[idx]**2)**2
     return ans
@@ -171,7 +174,7 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
     """
 
     if robust:
-        # We use the procedure described in 
+        # We use the procedure described in Cleveland1979
         # Start by calling this function with robust set to false and the x0
         # input being equal to the x input:
         w_est = lowess(x, w, x, kernel=epanechnikov, l=1, robust=False)
