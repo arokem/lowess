@@ -23,14 +23,26 @@ CLASSIFIERS = ["Development Status :: 3 - Alpha",
                "Topic :: Scientific/Engineering"]
 
 # Description should be a one-liner:
-description = "Lowess: locally linear regression"
+description = "lowess: locally linear regression"
 # Long description will go up on the pypi page
 long_description = """
+
+Lowess
+======
+This is a python implementation of the LOWESS algorithm for locally linear
+regression described in Cleveland (1979) and in chapter 6 of Friedman, Hastie
+and Tibshirani (2008).
+
+Friedman, Hastie and Tibshirani (2008). The Elements of Statistical
+Learning.   
+
+Cleveland (1979). Robust Locally Weighted Regression and Smoothing
+Scatterplots. J American Statistical Association, 74: 829-836.)
 
 
 License
 =======
-lowess is licensed under the terms of the MIT license. See the file
+``lowess`` is licensed under the terms of the MIT license. See the file
 "LICENSE" for information on the history of this software, terms & conditions
 for usage, and a DISCLAIMER OF ALL WARRANTIES.
 
