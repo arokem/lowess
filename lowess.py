@@ -59,7 +59,6 @@ def tri_cube(xx, idx=None):
     -----
     This is equation 6.6 in FHT chapter 6        
     """        
-
     ans = np.zeros(xx.shape)
     ans[idx] = (1-np.abs(xx[idx])**3)**3
     return ans
