@@ -170,7 +170,7 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
     >>> ax = fig.add_subplot(111, projection='3d')
     >>> ax.scatter(x[0], x[1], f)
     >>> ax.scatter(x0[0], x0[1], f_hat, color='r')
-
+    >>> plt.show()
     """
 
     if robust:
