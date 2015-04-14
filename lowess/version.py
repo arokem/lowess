@@ -69,4 +69,4 @@ MICRO = _version_micro
 VERSION = __version__
 PACKAGES = ['lowess',
             'lowess.tests']
-REQUIRES = ["numpy", "scipy"]
+REQUIRES = ["numpy"]
