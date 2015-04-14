@@ -14,8 +14,8 @@ Scatterplots. J American Statistical Association, 74: 829-836.
 
 """
 import numpy as np
-import scipy.linalg as la
-import scipy.stats as stats
+import numpy.linalg as la
+
 
 # Kernel functions:
 def epanechnikov(xx, idx=None):
@@ -179,7 +179,7 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
         # input being equal to the x input:
         w_est = lowess(x, w, x, kernel=epanechnikov, l=1, robust=False)
         resid = w_est - w
-        median_resid = stats.nanmedian(np.abs(resid))
+        median_resid = np.nanmedian(np.abs(resid))
         robustness_weights = bi_square(resid/(6*median_resid))
         # Calculate the bi-cube function on the
         # Sub-select
