@@ -9,9 +9,9 @@ deploy:
     repo: arokem/lowess
     all_branches: true
 env:
-- CONDA="python=2.7 numpy=1.7 scipy"
-- CONDA="python=3.3 numpy scipy"
-- CONDA="python=3.4 numpy scipy"
+- CONDA="python=2.7"
+- CONDA="python=3.3"
+- CONDA="python=3.4"
 before_install:
 - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
 - bash miniconda.sh -b -p $HOME/miniconda
@@ -20,7 +20,7 @@ before_install:
 - conda config --set always_yes yes
 - conda update conda
 - conda info -a
-- travis_retry conda create -n test numpy scipy matplotlib
+- conda create -n test numpy scipy matplotlib
 - source activate test
 - travis_retry pip install coveralls
 install:
