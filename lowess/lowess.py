@@ -6,7 +6,7 @@ Implementation of the LOWESS algorithm in n dimensions.
 
 References
 =========
-[FHT] Friedman, Hastie and Tibshirani (2008). The Elements of Statistical
+[HTF] Hastie, Tibshirani and Friedman (2008). The Elements of Statistical
 Learning; Chapter 6 
 
 [Cleveland79] Cleveland (1979). Robust Locally Weighted Regression and Smoothing
@@ -29,17 +29,13 @@ def epanechnikov(xx, idx=None):
         Values of the function on which the kernel is computed. Typically,
         these are Euclidean distances from some point x0 (see do_kernel)
 
-    idx: tuple
-        An indexing tuple pointing to the coordinates in xx for which the
-        kernel value is estimated. Default: None (all points are used!)  
-
     Notes
     -----
-    This is equation 6.4 in FHT chapter 6        
+    This is equation 6.4 in HTF chapter 6        
     
     """
     ans = np.zeros(xx.shape)
-    ans[idx] = 0.75 * (1-xx[idx]**2)
+    ans[idx] = 0.75 * (1 - xx[idx] ** 2)
     return ans
 
 
@@ -60,32 +56,11 @@ def tri_cube(xx, idx=None):
 
     Notes
     -----
-    This is equation 6.6 in FHT chapter 6        
+    This is equation 6.6 in HTF chapter 6        
     """        
     ans = np.zeros(xx.shape)
-    ans[idx] = (1-np.abs(xx[idx])**3)**3
+    ans[idx] = (1 - np.abs(xx[idx]) ** 3) ** 3
     return ans
-
-
-def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
-    """
-    Calculate a kernel function on x in the neighborhood of x0
-
-    Parameters
-    ----------
-    x: float array
-       All values of x
-    x0: float
-       The value of x around which we evaluate the kernel
-    l: float or float array (with shape = x.shape)
-       Width parameter (metric window size)
-    
-    """
-    # xx is the norm of x-x0. Note that we broadcast on the second axis for the
-    # nd case and then sum on the first to get the norm in each value of x:
-    xx = np.sum(np.sqrt(np.power(x-x0[:,np.newaxis], 2)), 0)
-    idx = np.where(np.abs(xx<=1))
-    return kernel(xx,idx)/l
 
 
 def bi_square(xx, idx=None):
@@ -101,13 +76,36 @@ def bi_square(xx, idx=None):
     This is the first equation on page 831 of [Cleveland79].
     """
     ans = np.zeros(xx.shape)
-    ans[idx] = (1-xx[idx]**2)**2
+    ans[idx] = (1 - xx[idx] ** 2) ** 2
     return ans
 
 
-def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
+def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     """
-    Locally linear regression with the LOWESS algorithm.
+    Calculate a kernel function on x in the neighborhood of x0
+
+    Parameters
+    ----------
+    x: float array
+       All values of x
+    x0: float
+       The value of x around which we evaluate the kernel
+    l: float or float array (with shape = x.shape)
+       Width parameter (metric window size)
+    kernel: callable
+        A kernel function. Any function with signature: `func(xx)`
+    
+    """
+    # xx is the norm of x-x0. Note that we broadcast on the second axis for the
+    # nd case and then sum on the first to get the norm in each value of x:
+    xx = np.sum(np.sqrt(np.power(x - x0[:, np.newaxis], 2)), 0)
+    idx = np.where(xx <= 1)
+    return kernel(xx, idx) / l
+
+
+def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
+    """
+    Locally smoothed regression with the LOWESS algorithm.
 
     Parameters
     ----------
@@ -124,15 +122,19 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
         single scalar value (only possible for the 1d case, in which case f(x0)
         is estimated for just that one value of x), or an array of shape (n, k).
 
+    deg: int
+        The degree of smoothing functions. 0 is locally constant, 1 is locally
+        linear, etc. Default: 1.
     kernel: callable
-        A kernel function. {'epanechnikov', 'tri_cube'}
+        A kernel function. {'epanechnikov', 'tri_cube', 'bi_square'}
 
     l: float or float array with shape = x.shape
        The metric window size for the kernel
 
     robust: bool
         Whether to apply the robustification procedure from [Cleveland79], page
-        831 
+        831
+    
         
     Returns
     -------
@@ -140,8 +142,9 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
 
     Notes
     -----
-    The solution to this problem is given by equation 6.8 in Friedman, Hastie
-    and Tibshirani (2008). The Elements of Statistical Learning (Chapter 6).
+    The solution to this problem is given by equation 6.8 in Hastie
+    Tibshirani and Friedman (2008). The Elements of Statistical Learning
+    (Chapter 6). 
 
     Example
     -------
@@ -151,12 +154,12 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
     # For the 1D case:
     >>> x = np.random.randn(100)
     >>> f = np.cos(x) + 0.2 * np.random.randn(100)
-    >>> x0 = np.linspace(-1,1,10)
+    >>> x0 = np.linspace(-1, 1, 10)
     >>> f_hat = lo.lowess(x, f, x0)
     >>> import matplotlib.pyplot as plt
-    >>> fig,ax = plt.subplots(1)
-    >>> ax.scatter(x,f)
-    >>> ax.plot(x0,f_hat,'ro')
+    >>> fig, ax = plt.subplots(1)
+    >>> ax.scatter(x, f)
+    >>> ax.plot(x0, f_hat, 'ro')
     >>> plt.show()
 
     # 2D case (and more...)
@@ -172,23 +175,23 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
     >>> ax.scatter(x0[0], x0[1], f_hat, color='r')
     >>> plt.show()
     """
-
     if robust:
         # We use the procedure described in Cleveland1979
         # Start by calling this function with robust set to false and the x0
         # input being equal to the x input:
-        w_est = lowess(x, w, x, kernel=epanechnikov, l=1, robust=False)
+        w_est = lowess(x, w, x, kernel=epanechnikov, l=l, robust=False)
         resid = w_est - w
         median_resid = np.nanmedian(np.abs(resid))
+        # Calculate the bi-cube function on the residuals for robustness
+        # weights: 
         robustness_weights = bi_square(resid/(6*median_resid))
-        # Calculate the bi-cube function on the
-        # Sub-select
         
     # For the case where x0 is provided as a scalar: 
     if not np.iterable(x0):
        x0 = np.asarray([x0])
     ans = np.zeros(x0.shape[-1]) 
     # We only need one design matrix:
+    # B = np.vstack([x ** d for d in range(deg)]).T
     B = np.vstack([np.ones(x.shape[-1]), x]).T
     for idx, this_x0 in enumerate(x0.T):
         # This is necessary in the 1d case (?):
@@ -208,7 +211,7 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
             W = np.dot(W, np.diag(robustness_weights))
 
         try: 
-            # Equation 6.8 in FHT:
+            # Equation 6.8 in HTF:
             BtWB = np.dot(np.dot(B.T, W), B)
             BtW = np.dot(B.T, W)
             # Get the params:
@@ -218,7 +221,7 @@ def lowess(x, w, x0, kernel=epanechnikov, l=1, robust=False):
         # If we are trying to sample far away from where the function is
         # defined, we will be trying to invert a singular matrix. In that case,
         # the regression should not work for you and you should get a nan:
-        except la.LinAlgError:
+        except la.LinAlgError :
             ans[idx] += np.nan
 
             
