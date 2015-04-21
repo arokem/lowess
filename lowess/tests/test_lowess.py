@@ -24,16 +24,18 @@ def test_lowess2d():
     Test the 2D case 
     """
     np.random.seed(1977)
-    for l in [0.2, 1.0]:
+    for l in [1.0, 0.2]:
         for kernel in [lo.epanechnikov, lo.tri_cube]:
             for robust in [True, False]:
-                x = np.random.randn(2, 100)
-                f = -1 * np.sin(x[0]) + 0.5 * np.cos(x[1])
-                x0 = np.mgrid[-1:1:.1, -1:1:.1]
-                x0 = np.vstack([x0[0].ravel(), x0[1].ravel()])
-                f_hat = lo.lowess(x, f, x0, kernel=kernel, l=l, robust=robust) 
-                f_real = -1 * np.sin(x0[0]) + 0.5 * np.cos(x0[1])
-                npt.assert_array_almost_equal(f_hat, f_real, decimal=1)
+                for deg in [1, 3]:
+                    x = np.random.randn(2, 100)
+                    f = -1 * np.sin(x[0]) + 0.5 * np.cos(x[1])
+                    x0 = np.mgrid[-1:1:.1, -1:1:.1]
+                    x0 = np.vstack([x0[0].ravel(), x0[1].ravel()])
+                    f_hat = lo.lowess(x, f, x0, deg=deg, kernel=kernel, l=l,
+                                      robust=robust) 
+                    f_real = -1 * np.sin(x0[0]) + 0.5 * np.cos(x0[1])
+                    npt.assert_array_almost_equal(f_hat, f_real, decimal=0)
 
     
 def test_lowess3d():

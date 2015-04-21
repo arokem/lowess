@@ -103,7 +103,7 @@ def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     return kernel(xx, idx) / l
 
 
-def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
+def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     """
     Locally smoothed regression with the LOWESS algorithm.
 
@@ -111,10 +111,10 @@ def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     ----------
     x: float n-d array  
        Values of x for which f(x) is known (e.g. measured). The shape of this
-       is (n, j), where n is the number the dimensions of the and j is the
-       number of distinct coordinates sampled.  
+       is (n, j), where n is the number the dimensions and j is the
+       number of distinct coordinates sampled.
     
-    w: float array
+    y: float array
        The known values of f(x) at these points. This has shape (j,) 
 
     x0: float or float array.
@@ -125,6 +125,7 @@ def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     deg: int
         The degree of smoothing functions. 0 is locally constant, 1 is locally
         linear, etc. Default: 1.
+        
     kernel: callable
         A kernel function. {'epanechnikov', 'tri_cube', 'bi_square'}
 
@@ -179,20 +180,23 @@ def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
         # We use the procedure described in Cleveland1979
         # Start by calling this function with robust set to false and the x0
         # input being equal to the x input:
-        w_est = lowess(x, w, x, kernel=epanechnikov, l=l, robust=False)
-        resid = w_est - w
+        y_est = lowess(x, y, x, kernel=epanechnikov, l=l, robust=False)
+        resid = y_est - y
         median_resid = np.nanmedian(np.abs(resid))
         # Calculate the bi-cube function on the residuals for robustness
         # weights: 
-        robustness_weights = bi_square(resid/(6*median_resid))
+        robustness_weights = bi_square(resid / (6 * median_resid))
         
     # For the case where x0 is provided as a scalar: 
     if not np.iterable(x0):
        x0 = np.asarray([x0])
     ans = np.zeros(x0.shape[-1]) 
-    # We only need one design matrix:
-    # B = np.vstack([x ** d for d in range(deg)]).T
-    B = np.vstack([np.ones(x.shape[-1]), x]).T
+    # We only need one design matrix for fitting:
+    B = [np.ones(x.shape[-1])]
+    for d in range(1, deg+1):
+        B.append(x ** deg)
+
+    B = np.vstack(B).T
     for idx, this_x0 in enumerate(x0.T):
         # This is necessary in the 1d case (?):
         if not np.iterable(this_x0):
@@ -215,17 +219,19 @@ def lowess(x, w, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
             BtWB = np.dot(np.dot(B.T, W), B)
             BtW = np.dot(B.T, W)
             # Get the params:
-            beta = np.dot(np.dot(la.inv(BtWB), BtW), w.T)
+            beta = np.dot(np.dot(la.pinv(BtWB), BtW), y.T)
+            # We create a design matrix for this coordinat for back-predicting:
+            B0 = [1]
+            for d in range(1, deg+1):
+                B0 = np.hstack([B0, this_x0 ** deg])
+            B0 = np.vstack(B0).T
             # Estimate the answer based on the parameters:
-            ans[idx] += beta[0] + np.dot(beta[1:], this_x0)
+            ans[idx] += np.dot(B0, beta)
         # If we are trying to sample far away from where the function is
         # defined, we will be trying to invert a singular matrix. In that case,
         # the regression should not work for you and you should get a nan:
         except la.LinAlgError :
             ans[idx] += np.nan
-
-            
-
     return ans.T
 
 
