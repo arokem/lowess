@@ -26,7 +26,6 @@ before_install:
 install:
 - python setup.py install
 script:
-- if [[ $CONDA == python=2.7* ]]; then nosetests --exe -v --with-cov --cover-package
-  lowess; else nosetests --exe -v lowess; fi
+- nosetests -v --with-coverage --cover-package=lowess
 after_success:
 - coveralls
