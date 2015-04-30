@@ -18,7 +18,7 @@ import numpy.linalg as la
 
 
 # Kernel functions:
-def epanechnikov(xx, idx=None):
+def epanechnikov(xx, **kwargs):
     """
     The Epanechnikov kernel estimated for xx values at indices idx (zero
     elsewhere) 
@@ -34,12 +34,15 @@ def epanechnikov(xx, idx=None):
     This is equation 6.4 in HTF chapter 6        
     
     """
+    l = kwargs.get('l', 1.0)
     ans = np.zeros(xx.shape)
-    ans[idx] = 0.75 * (1 - xx[idx] ** 2)
+    xx_norm = xx / l
+    idx = np.where(xx_norm <= 1)
+    ans[idx] = 0.75 * (1 - xx_norm[idx]  ** 2)
     return ans
 
 
-def tri_cube(xx, idx=None):
+def tri_cube(xx, **kwargs):
     """ 
     The tri-cube kernel estimated for xx values at indices idx (zero
     elsewhere) 
@@ -59,11 +62,12 @@ def tri_cube(xx, idx=None):
     This is equation 6.6 in HTF chapter 6        
     """        
     ans = np.zeros(xx.shape)
+    idx = np.where(xx <= 1)
     ans[idx] = (1 - np.abs(xx[idx]) ** 3) ** 3
     return ans
 
 
-def bi_square(xx, idx=None):
+def bi_square(xx, **kwargs):
     """
     The bi-square weight function calculated over values of xx
 
@@ -76,6 +80,7 @@ def bi_square(xx, idx=None):
     This is the first equation on page 831 of [Cleveland79].
     """
     ans = np.zeros(xx.shape)
+    idx = np.where(xx < 1)
     ans[idx] = (1 - xx[idx] ** 2) ** 2
     return ans
 
@@ -93,14 +98,12 @@ def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     l: float or float array (with shape = x.shape)
        Width parameter (metric window size)
     kernel: callable
-        A kernel function. Any function with signature: `func(xx)`
-    
+        A kernel function. Any function with signature: `func(xx)`    
     """
     # xx is the norm of x-x0. Note that we broadcast on the second axis for the
     # nd case and then sum on the first to get the norm in each value of x:
     xx = np.sum(np.sqrt(np.power(x - x0[:, np.newaxis], 2)), 0)
-    idx = np.where(xx <= 1)
-    return kernel(xx, idx) / l
+    return kernel(xx, l=l)
 
 
 def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
@@ -203,7 +206,6 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
             this_x0 = np.asarray([this_x0])
         # Different weighting kernel for each x0:
         W = np.diag(do_kernel(this_x0, x, l=l, kernel=kernel))
-
         # XXX It should be possible to calculate W outside the loop, if x0 and
         # x are both sampled in some regular fashion (that is, if W is the same
         # matrix in each iteration). That should save time.
@@ -213,25 +215,24 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
             # procedure:
             robustness_weights[np.isnan(robustness_weights)] = 0
             W = np.dot(W, np.diag(robustness_weights))
-
-        try: 
-            # Equation 6.8 in HTF:
-            BtWB = np.dot(np.dot(B.T, W), B)
-            BtW = np.dot(B.T, W)
-            # Get the params:
-            beta = np.dot(np.dot(la.pinv(BtWB), BtW), y.T)
-            # We create a design matrix for this coordinat for back-predicting:
-            B0 = [1]
-            for d in range(1, deg+1):
-                B0 = np.hstack([B0, this_x0 ** deg])
-            B0 = np.vstack(B0).T
-            # Estimate the answer based on the parameters:
-            ans[idx] += np.dot(B0, beta)
-        # If we are trying to sample far away from where the function is
-        # defined, we will be trying to invert a singular matrix. In that case,
-        # the regression should not work for you and you should get a nan:
-        except la.LinAlgError :
-            ans[idx] += np.nan
+        #try: 
+        # Equation 6.8 in HTF:
+        BtWB = np.dot(np.dot(B.T, W), B)
+        BtW = np.dot(B.T, W)
+        # Get the params:
+        beta = np.dot(np.dot(la.pinv(BtWB), BtW), y.T)
+        # We create a design matrix for this coordinat for back-predicting:
+        B0 = [1]
+        for d in range(1, deg+1):
+            B0 = np.hstack([B0, this_x0 ** deg])
+        B0 = np.vstack(B0).T
+        # Estimate the answer based on the parameters:
+        ans[idx] += np.dot(B0, beta)
+    # If we are trying to sample far away from where the function is
+    # defined, we will be trying to invert a singular matrix. In that case,
+    # the regression should not work for you and you should get a nan:
+        #except la.LinAlgError :
+        #    ans[idx] += np.nan
     return ans.T
 
 

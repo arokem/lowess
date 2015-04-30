@@ -8,15 +8,14 @@ def test_lowess():
     Test 1-d local linear regression with lowess
     """
     np.random.seed(1984)
-    for l in [0.2, 1.0]:
-        for kernel in [lo.epanechnikov, lo.tri_cube]:
-            for robust in [True, False]:
-                x = np.random.randn(100)
-                f = np.sin(x)
-                x0 = np.linspace(-1, 1, 10)
-                f_hat = lo.lowess(x, f, x0, kernel=kernel, l=l, robust=robust)
-                f_real = np.sin(x0)
-                npt.assert_array_almost_equal(f_hat, f_real, decimal=1)
+    for kernel in [lo.epanechnikov, lo.tri_cube]:
+        for robust in [True, False]:
+            x = np.random.randn(100)
+            f = np.sin(x)
+            x0 = np.linspace(-1, 1, 10)
+            f_hat = lo.lowess(x, f, x0, kernel=kernel, l=1.0, robust=robust)
+            f_real = np.sin(x0)
+            npt.assert_array_almost_equal(f_hat, f_real, decimal=1)
 
 
 def test_lowess2d(): 
@@ -24,7 +23,7 @@ def test_lowess2d():
     Test the 2D case 
     """
     np.random.seed(1977)
-    for l in [1.0, 0.2]:
+    for l in [1.0, 2.0]:
         for kernel in [lo.epanechnikov, lo.tri_cube]:
             for robust in [True, False]:
                 for deg in [1, 3]:
