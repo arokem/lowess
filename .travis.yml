@@ -21,8 +21,7 @@ before_install:
 - conda config --set always_yes yes
 - conda update conda
 - conda info -a
-- conda install numpy matplotlib
-- pip install coverage
+- conda install numpy matplotlib nose coverage
 - travis_retry pip install coveralls
 install:
 - python setup.py install
