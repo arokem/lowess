@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = lowess
+include = lowess
+omit = */setup.py
+[report]
+include = lowess
