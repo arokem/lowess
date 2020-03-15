@@ -102,7 +102,7 @@ def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     """
     # xx is the norm of x-x0. Note that we broadcast on the second axis for the
     # nd case and then sum on the first to get the norm in each value of x:
-    xx = np.sum(np.sqrt(np.power(x - x0[:, np.newaxis], 2)), 0)
+    xx = np.sqrt(np.sum(np.power(x - x0[:, np.newaxis], 2)), 0)
     return kernel(xx, l=l)
 
 
