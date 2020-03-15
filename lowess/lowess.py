@@ -1,5 +1,5 @@
 """
-lowess: Locally linear regression  
+lowess: Locally linear regression
 ==================================
 
 Implementation of the LOWESS algorithm in n dimensions.
@@ -7,7 +7,7 @@ Implementation of the LOWESS algorithm in n dimensions.
 References
 =========
 [HTF] Hastie, Tibshirani and Friedman (2008). The Elements of Statistical
-Learning; Chapter 6 
+Learning; Chapter 6
 
 [Cleveland79] Cleveland (1979). Robust Locally Weighted Regression and Smoothing
 Scatterplots. J American Statistical Association, 74: 829-836.
@@ -21,7 +21,7 @@ import numpy.linalg as la
 def epanechnikov(xx, **kwargs):
     """
     The Epanechnikov kernel estimated for xx values at indices idx (zero
-    elsewhere) 
+    elsewhere)
 
     Parameters
     ----------
@@ -31,8 +31,8 @@ def epanechnikov(xx, **kwargs):
 
     Notes
     -----
-    This is equation 6.4 in HTF chapter 6        
-    
+    This is equation 6.4 in HTF chapter 6
+
     """
     l = kwargs.get('l', 1.0)
     ans = np.zeros(xx.shape)
@@ -43,9 +43,9 @@ def epanechnikov(xx, **kwargs):
 
 
 def tri_cube(xx, **kwargs):
-    """ 
+    """
     The tri-cube kernel estimated for xx values at indices idx (zero
-    elsewhere) 
+    elsewhere)
 
     Parameters
     ----------
@@ -55,12 +55,12 @@ def tri_cube(xx, **kwargs):
 
     idx: tuple
         An indexing tuple pointing to the coordinates in xx for which the
-        kernel value is estimated. Default: None (all points are used!)  
+        kernel value is estimated. Default: None (all points are used!)
 
     Notes
     -----
-    This is equation 6.6 in HTF chapter 6        
-    """        
+    This is equation 6.6 in HTF chapter 6
+    """
     ans = np.zeros(xx.shape)
     idx = np.where(xx <= 1)
     ans[idx] = (1 - np.abs(xx[idx]) ** 3) ** 3
@@ -98,11 +98,11 @@ def do_kernel(x0, x, l=1.0, kernel=epanechnikov):
     l: float or float array (with shape = x.shape)
        Width parameter (metric window size)
     kernel: callable
-        A kernel function. Any function with signature: `func(xx)`    
+        A kernel function. Any function with signature: `func(xx)`
     """
     # xx is the norm of x-x0. Note that we broadcast on the second axis for the
     # nd case and then sum on the first to get the norm in each value of x:
-    xx = np.sqrt(np.sum(np.power(x - x0[:, np.newaxis], 2)), 0)
+    xx = np.sqrt(np.sum(np.power(x - x0[:, np.newaxis], 2), 0))
     return kernel(xx, l=l)
 
 
@@ -112,13 +112,13 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
 
     Parameters
     ----------
-    x: float n-d array  
+    x: float n-d array
        Values of x for which f(x) is known (e.g. measured). The shape of this
        is (n, j), where n is the number the dimensions and j is the
        number of distinct coordinates sampled.
-    
+
     y: float array
-       The known values of f(x) at these points. This has shape (j,) 
+       The known values of f(x) at these points. This has shape (j,)
 
     x0: float or float array.
         Values of x for which we estimate the value of f(x). This is either a
@@ -128,7 +128,7 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     deg: int
         The degree of smoothing functions. 0 is locally constant, 1 is locally
         linear, etc. Default: 1.
-        
+
     kernel: callable
         A kernel function. {'epanechnikov', 'tri_cube', 'bi_square'}
 
@@ -138,17 +138,17 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     robust: bool
         Whether to apply the robustification procedure from [Cleveland79], page
         831
-    
-        
+
+
     Returns
     -------
-    The function estimated at x0. 
+    The function estimated at x0.
 
     Notes
     -----
     The solution to this problem is given by equation 6.8 in Hastie
     Tibshirani and Friedman (2008). The Elements of Statistical Learning
-    (Chapter 6). 
+    (Chapter 6).
 
     Example
     -------
@@ -162,9 +162,8 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     >>> f_hat = lo.lowess(x, f, x0)
     >>> import matplotlib.pyplot as plt
     >>> fig, ax = plt.subplots(1)
-    >>> ax.scatter(x, f)
-    >>> ax.plot(x0, f_hat, 'ro')
-    >>> plt.show()
+    >>> _ = ax.scatter(x, f)
+    >>> _ = ax.plot(x0, f_hat, 'ro')
 
     # 2D case (and more...)
     >>> x = np.random.randn(2, 100)
@@ -175,9 +174,8 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
     >>> from mpl_toolkits.mplot3d import Axes3D
     >>> fig = plt.figure()
     >>> ax = fig.add_subplot(111, projection='3d')
-    >>> ax.scatter(x[0], x[1], f)
-    >>> ax.scatter(x0[0], x0[1], f_hat, color='r')
-    >>> plt.show()
+    >>> _ = ax.scatter(x[0], x[1], f)
+    >>> _ = ax.scatter(x0[0], x0[1], f_hat, color='r')
     """
     if robust:
         # We use the procedure described in Cleveland1979
@@ -187,13 +185,13 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
         resid = y_est - y
         median_resid = np.nanmedian(np.abs(resid))
         # Calculate the bi-cube function on the residuals for robustness
-        # weights: 
+        # weights:
         robustness_weights = bi_square(resid / (6 * median_resid))
-        
-    # For the case where x0 is provided as a scalar: 
+
+    # For the case where x0 is provided as a scalar:
     if not np.iterable(x0):
        x0 = np.asarray([x0])
-    ans = np.zeros(x0.shape[-1]) 
+    ans = np.zeros(x0.shape[-1])
     # We only need one design matrix for fitting:
     B = [np.ones(x.shape[-1])]
     for d in range(1, deg+1):
@@ -215,7 +213,7 @@ def lowess(x, y, x0, deg=1, kernel=epanechnikov, l=1, robust=False,):
             # procedure:
             robustness_weights[np.isnan(robustness_weights)] = 0
             W = np.dot(W, np.diag(robustness_weights))
-        #try: 
+        #try:
         # Equation 6.8 in HTF:
         BtWB = np.dot(np.dot(B.T, W), B)
         BtW = np.dot(B.T, W)

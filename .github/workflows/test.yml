@@ -29,4 +29,5 @@ jobs:
         pip install .
     - name: Test
       run: |
-        make all
+        pip install pytest
+        pytest --doctest-modules
